@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Web;
 using System.Web.Mvc;
 using GridMvc.Columns;
@@ -33,19 +33,21 @@ namespace GridMvc.Sorting
             if (column.SortEnabled)
             {
                 var columnHeaderLink = new TagBuilder("a")
-                    {
-                        InnerHtml = column.Title
-                    };
+                {
+                    InnerHtml = column.Title
+                };
+
                 string url = GetSortUrl(column.Name, column.Direction);
+
                 columnHeaderLink.Attributes.Add("href", url);
                 sortTitle.InnerHtml += columnHeaderLink.ToString();
             }
             else
             {
                 var columnTitle = new TagBuilder("span")
-                    {
-                        InnerHtml = column.Title
-                    };
+                {
+                    InnerHtml = column.Title
+                };
                 sortTitle.InnerHtml += columnTitle.ToString();
             }
 
@@ -58,6 +60,7 @@ namespace GridMvc.Sorting
                 sortArrow.AddCssClass("grid-sort-arrow");
                 sortTitle.InnerHtml += sortArrow.ToString();
             }
+
             return sortTitle.ToString();
         }
 
@@ -67,22 +70,42 @@ namespace GridMvc.Sorting
             GridSortDirection newDir = direction == GridSortDirection.Ascending
                                            ? GridSortDirection.Descending
                                            : GridSortDirection.Ascending;
+
             //determine current url:
             var builder = new CustomQueryStringBuilder(_settings.Context.Request.QueryString);
-            string url =
-                builder.GetQueryStringExcept(new[]
-                    {
-                        GridPager.DefaultPageQueryParameter,
-                        _settings.ColumnQueryParameterName,
-                        _settings.DirectionQueryParameterName
-                    });
+            string url = builder.GetQueryStringExcept(new[]
+                            {
+                                GridPager.DefaultPageQueryParameter,
+                                _settings.ColumnQueryParameterName,
+                                _settings.DirectionQueryParameterName
+                            });
+
+            // Get grid page number
+            var getGridPageValue = builder.GetValues("grid-page");
+            string pageNumber = "";
+            if (getGridPageValue != null)
+            {
+                foreach (var item in getGridPageValue)
+                {
+                    pageNumber = item;
+                }
+            }
+
             if (string.IsNullOrEmpty(url))
+            {
                 url = "?";
+            }
             else
+            {
                 url += "&";
-            return string.Format("{0}{1}={2}&{3}={4}", url, _settings.ColumnQueryParameterName, columnName,
-                                 _settings.DirectionQueryParameterName,
-                                 ((int) newDir).ToString(CultureInfo.InvariantCulture));
+            }
+
+            return string.Format("{0}{1}={2}&{3}={4}&{5}={6}", url,
+                        _settings.ColumnQueryParameterName, columnName,
+                        _settings.DirectionQueryParameterName,
+                        ((int)newDir).ToString(CultureInfo.InvariantCulture),
+                        GridPager.DefaultPageQueryParameter,
+                        pageNumber);
         }
     }
 }
